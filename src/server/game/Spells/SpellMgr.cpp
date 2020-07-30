@@ -2688,6 +2688,9 @@ void SpellMgr::LoadSpellCustomAttr()
         case 34444: // Summon Khadgar's Servent
             spellInfo->DurationIndex = 30;
             break;
+        case 40447: // BlackTemple: Akama Soul Channel
+            spellInfo->Effect[0] = SPELL_EFFECT_NONE;
+            break;
         default:
             break;
         }
