@@ -891,13 +891,14 @@ void SpellMgr::LoadSpellTargetPositions()
     uint32 count = 0;
 
     //                                                       0   1           2                  3                  4                  5
-    QueryResult_AutoPtr result = WorldDatabase.Query("SELECT id, target_map, target_position_x, target_position_y, target_position_z, target_orientation FROM spell_target_position");
+    QueryResult* result = WorldDatabase.Query("SELECT id, target_map, target_position_x, target_position_y, target_position_z, target_orientation FROM spell_target_position");
     if (!result)
     {
 
 
 
         sLog.outString(">> Loaded %u spell target coordinates", count);
+		sLog.outString();
         return;
     }
 
@@ -959,6 +960,7 @@ void SpellMgr::LoadSpellTargetPositions()
     while (result->NextRow());
 
     sLog.outString(">> Loaded %u spell teleport coordinates", count);
+	sLog.outString();
 }
 
 void SpellMgr::LoadSpellAffects()
@@ -968,11 +970,12 @@ void SpellMgr::LoadSpellAffects()
     uint32 count = 0;
 
     //                                                       0      1         2
-    QueryResult_AutoPtr result = WorldDatabase.Query("SELECT entry, effectId, SpellFamilyMask FROM spell_affect");
+    QueryResult* result = WorldDatabase.Query("SELECT entry, effectId, SpellFamilyMask FROM spell_affect");
     if (!result)
     {
 
         sLog.outString(">> Loaded %u spell affect definitions", count);
+		sLog.outString();
         return;
     }
 
@@ -1028,6 +1031,7 @@ void SpellMgr::LoadSpellAffects()
     while (result->NextRow());
 
     sLog.outString(">> Loaded %u spell affect definitions", count);
+	sLog.outString();
 
     for (uint32 id = 0; id < sSpellStore.GetNumRows(); ++id)
     {
@@ -1093,10 +1097,11 @@ void SpellMgr::LoadSpellProcEvents()
     uint32 count = 0;
 
     //                                                       0      1           2                3                4          5       6        7             8
-    QueryResult_AutoPtr result = WorldDatabase.Query("SELECT entry, SchoolMask, SpellFamilyName, SpellFamilyMask, procFlags, procEx, ppmRate, CustomChance, Cooldown FROM spell_proc_event");
+    QueryResult* result = WorldDatabase.Query("SELECT entry, SchoolMask, SpellFamilyName, SpellFamilyMask, procFlags, procEx, ppmRate, CustomChance, Cooldown FROM spell_proc_event");
     if (!result)
     {
         sLog.outString(">> Loaded %u spell proc event conditions", count);
+		sLog.outString();
         return;
     }
 
@@ -1140,10 +1145,16 @@ void SpellMgr::LoadSpellProcEvents()
     }
     while (result->NextRow());
 
-    if (customProc)
-        sLog.outString(">> Loaded %u custom spell proc event conditions +%u custom",  count, customProc);
-    else
-        sLog.outString(">> Loaded %u spell proc event conditions", count);
+	if (customProc)
+	{
+		sLog.outString(">> Loaded %u custom spell proc event conditions +%u custom", count, customProc);
+		sLog.outString();
+	}
+	else
+	{
+		sLog.outString(">> Loaded %u spell proc event conditions", count);
+		sLog.outString();
+	}
 }
 
 
@@ -1268,7 +1279,7 @@ void SpellMgr::LoadSpellGroups()
     uint32 count = 0;
 
     //                                                       0   1
-    QueryResult_AutoPtr result = WorldDatabase.Query("SELECT id, spell_id FROM spell_group");
+    QueryResult* result = WorldDatabase.Query("SELECT id, spell_id FROM spell_group");
     if ( !result )
     {
         sLog.outString( ">> Loaded %u spell group definitions", count );
@@ -1348,7 +1359,7 @@ void SpellMgr::LoadSpellGroupStackRules()
     uint32 count = 0;
 
     //                                                       0         1
-    QueryResult_AutoPtr result = WorldDatabase.Query("SELECT group_id, stack_rule FROM spell_group_stack_rules");
+    QueryResult* result = WorldDatabase.Query("SELECT group_id, stack_rule FROM spell_group_stack_rules");
     if ( !result )
     {
         sLog.outString( ">> Loaded %u spell group stack rules", count );
@@ -1391,7 +1402,7 @@ void SpellMgr::LoadSpellThreats()
     uint32 count = 0;
 
     //                                                0      1        2       3
-    QueryResult_AutoPtr result = WorldDatabase.Query("SELECT entry, flatMod, pctMod, apPctMod FROM spell_threat");
+    QueryResult* result = WorldDatabase.Query("SELECT entry, flatMod, pctMod, apPctMod FROM spell_threat");
 
     if (!result)
     {
@@ -1422,6 +1433,7 @@ void SpellMgr::LoadSpellThreats()
     while (result->NextRow());
 
     sLog.outString(">> Loaded %u SpellThreatEntries.", count);
+	sLog.outString();
 }
 
 void SpellMgr::LoadSpellEnchantProcData()
@@ -1431,10 +1443,11 @@ void SpellMgr::LoadSpellEnchantProcData()
     uint32 count = 0;
 
     //                                                       0      1             2          3
-    QueryResult_AutoPtr result = WorldDatabase.Query("SELECT entry, customChance, PPMChance, procEx FROM spell_enchant_proc_data");
+    QueryResult* result = WorldDatabase.Query("SELECT entry, customChance, PPMChance, procEx FROM spell_enchant_proc_data");
     if (!result)
     {
         sLog.outString(">> Loaded %u spell enchant proc event conditions", count);
+		sLog.outString();
         return;
     }
 
@@ -1464,12 +1477,13 @@ void SpellMgr::LoadSpellEnchantProcData()
     while (result->NextRow());
 
     sLog.outString(">> Loaded %u enchant proc data definitions", count);
+	sLog.outString();
 }
 
 void SpellMgr::LoadSpellDummyCondition()
 {
     //                                                             0        1          2                3          4        5          6     7          8        9        10          11      12
-    if (QueryResult_AutoPtr result = WorldDatabase.PQuery("SELECT entry, effIndex, bitMaskCondition, condition0, data0, condition1, data1, condition2, data2, condition3, data3, condition4, data4 FROM spell_dummy_condition ORDER BY entry ASC"))
+    if (QueryResult* result = WorldDatabase.PQuery("SELECT entry, effIndex, bitMaskCondition, condition0, data0, condition1, data1, condition2, data2, condition3, data3, condition4, data4 FROM spell_dummy_condition ORDER BY entry ASC"))
     {
         Field* field;
         SpellDummyConditionEntry sdcEntry;
@@ -1493,10 +1507,12 @@ void SpellMgr::LoadSpellDummyCondition()
         while (result->NextRow());
 
         sLog.outString(">> Loaded %llu spell dummy conditions", result->GetRowCount());
+		sLog.outString();
         return;
     }
 
     sLog.outString(">> Loaded 0 spell dummy conditions");
+	sLog.outString();
 }
 
 bool SpellMgr::IsRankSpellDueToSpell(SpellEntry const* spellInfo_1, uint32 spellId_2) const
@@ -1809,12 +1825,13 @@ void SpellMgr::LoadSpellRequired()
     mSpellsReqSpell.clear();                                   // need for reload case
     mSpellReq.clear();                                         // need for reload case
 
-    QueryResult_AutoPtr result = WorldDatabase.Query("SELECT spell_id, req_spell from spell_required");
+    QueryResult* result = WorldDatabase.Query("SELECT spell_id, req_spell from spell_required");
 
     if (!result)
     {
         sLog.outString(">> Loaded 0 spell required records");
         sLog.outErrorDb("spell_required table is empty!");
+		sLog.outString();
         return;
     }
     uint32 rows = 0;
@@ -1833,6 +1850,7 @@ void SpellMgr::LoadSpellRequired()
     while (result->NextRow());
 
     sLog.outString(">> Loaded %u spell required records", rows);
+	sLog.outString();
 }
 
 struct SpellRankEntry
@@ -2046,7 +2064,7 @@ void SpellMgr::LoadSpellChains()
         }
     }
 
-    QueryResult_AutoPtr result = WorldDatabase.PQuery("SELECT `spell_id`, `prev_spell_id`,`next_spell_id`,`first_spell_id`,`last_spell_id`, `rank` FROM `spell_ranks`");
+    QueryResult* result = WorldDatabase.PQuery("SELECT `spell_id`, `prev_spell_id`,`next_spell_id`,`first_spell_id`,`last_spell_id`, `rank` FROM `spell_ranks`");
 
     if (!result)
         return;
@@ -2085,6 +2103,7 @@ void SpellMgr::LoadSpellChains()
     //       sLog.outString("Id: %u, Rank: %d , %s",itr->first,itr->second.rank, sSpellStore.LookupEntry(itr->first)->Rank[sWorld.GetDefaultDbcLocale()]);
 
     sLog.outString(">> Loaded %u spell chains", count);
+	sLog.outString();
 }
 
 void SpellMgr::LoadSpellLearnSkills()
@@ -2120,18 +2139,20 @@ void SpellMgr::LoadSpellLearnSkills()
     }
 
     sLog.outString(">> Loaded %u Spell Learn Skills from DBC", dbc_count);
+	sLog.outString();
 }
 
 void SpellMgr::LoadSpellLearnSpells()
 {
     mSpellLearnSpells.clear();                              // need for reload case
 
-    QueryResult_AutoPtr result = WorldDatabase.Query("SELECT entry, SpellID FROM spell_learn_spell");
+    QueryResult* result = WorldDatabase.Query("SELECT entry, SpellID FROM spell_learn_spell");
     if (!result)
     {
 
         sLog.outString(">> Loaded 0 spell learn spells");
         sLog.outErrorDb("spell_learn_spell table is empty!");
+		sLog.outString();
         return;
     }
 
@@ -2207,6 +2228,7 @@ void SpellMgr::LoadSpellLearnSpells()
     }
 
     sLog.outString(">> Loaded %u spell learn spells + %u found in DBC", count, dbc_count);
+	sLog.outString();
 }
 
 void SpellMgr::LoadSpellPetAuras()
@@ -2216,10 +2238,11 @@ void SpellMgr::LoadSpellPetAuras()
     uint32 count = 0;
 
     //                                                       0      1    2
-    QueryResult_AutoPtr result = WorldDatabase.Query("SELECT spell, pet, aura FROM spell_pet_auras");
+    QueryResult* result = WorldDatabase.Query("SELECT spell, pet, aura FROM spell_pet_auras");
     if (!result)
     {
         sLog.outString(">> Loaded %u spell pet auras", count);
+		sLog.outString();
         return;
     }
 
@@ -2272,6 +2295,7 @@ void SpellMgr::LoadSpellPetAuras()
     while (result->NextRow());
 
     sLog.outString(">> Loaded %u spell pet auras", count);
+	sLog.outString();
 }
 
 // set data in core for now
@@ -2760,10 +2784,11 @@ void SpellMgr::LoadSpellCustomCooldowns()
     SpellEntry* spellInfo;
 
     //                                                       0              1
-    QueryResult_AutoPtr result = WorldDatabase.Query("SELECT spellid, cooldown FROM spell_cooldown");
+    QueryResult* result = WorldDatabase.Query("SELECT spellid, cooldown FROM spell_cooldown");
     if (!result)
     {
         sLog.outString(">> Loaded %u custom spell cooldowns", count);
+		sLog.outString();
         return;
     }
 
@@ -2789,6 +2814,7 @@ void SpellMgr::LoadSpellCustomCooldowns()
     while (result->NextRow());
 
     sLog.outString(">> Loaded %u custom spell cooldowns", count);
+	sLog.outString();
 }
 
 void SpellMgr::LoadSpellLinked()
@@ -2797,10 +2823,11 @@ void SpellMgr::LoadSpellLinked()
     uint32 count = 0;
 
     //                                                       0              1             2
-    QueryResult_AutoPtr result = WorldDatabase.Query("SELECT spell_trigger, spell_effect, type FROM spell_linked_spell");
+    QueryResult* result = WorldDatabase.Query("SELECT spell_trigger, spell_effect, type FROM spell_linked_spell");
     if (!result)
     {
         sLog.outString(">> Loaded %u linked spells", count);
+		sLog.outString();
         return;
     }
 
@@ -2857,6 +2884,7 @@ void SpellMgr::LoadSpellLinked()
     while (result->NextRow());
 
     sLog.outString(">> Loaded %u linked spells", count);
+	sLog.outString();
 }
 
 // Some checks for spells, to prevent adding depricated/broken spells for trainers, spell book, etc
@@ -3087,6 +3115,7 @@ void SpellMgr::LoadSkillLineAbilityMap()
     }
 
     sLog.outString(">> Loaded %u SkillLineAbility MultiMap", count);
+	sLog.outString();
 }
 
 DiminishingGroup GetDiminishingReturnsGroupForSpell(SpellEntry const* spellproto, bool triggered)

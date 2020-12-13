@@ -55,7 +55,7 @@ void LoadSkillExtraItemTable()
     SkillExtraItemStore.clear();                            // need for reload
 
     //                                                       0        1                       2                       3
-    QueryResult_AutoPtr result = WorldDatabase.Query("SELECT spellId, requiredSpecialization, additionalCreateChance, additionalMaxNum FROM skill_extra_item_template");
+    QueryResult* result = WorldDatabase.Query("SELECT spellId, requiredSpecialization, additionalCreateChance, additionalMaxNum FROM skill_extra_item_template");
 
     if (result)
     {
@@ -104,9 +104,13 @@ void LoadSkillExtraItemTable()
         while (result->NextRow());
 
         sLog.outString(">> Loaded %u spell specialization definitions", count);
+		sLog.outString();
     }
-    else
-        sLog.outString(">> Loaded 0 spell specialization definitions. DB table skill_extra_item_template is empty.");
+	else
+	{
+		sLog.outString(">> Loaded 0 spell specialization definitions. DB table skill_extra_item_template is empty.");
+		sLog.outString();
+	}
 }
 
 bool canCreateExtraItems(Player* player, uint32 spellId, float& additionalChance, uint8& additionalMax)
