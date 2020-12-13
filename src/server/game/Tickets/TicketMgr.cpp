@@ -95,13 +95,14 @@ void TicketMgr::LoadGMTickets()
     // Delete all out of object holder
     GM_TicketList.clear();
 
-    QueryResult_AutoPtr result = CharacterDatabase.Query("SELECT guid, playerGuid, name, message, createtime, map, posX, posY, posZ, timestamp, closed, assignedto, comment, escalated, viewed FROM gm_tickets");
+    QueryResult* result = CharacterDatabase.Query("SELECT guid, playerGuid, name, message, createtime, map, posX, posY, posZ, timestamp, closed, assignedto, comment, escalated, viewed FROM gm_tickets");
     GM_Ticket* ticket;
 
     if (!result)
     {
         ticketmgr.InitTicketID();
         sLog.outString(">> GM Tickets table is empty, no tickets were loaded.");
+		sLog.outString();
         return;
     }
 
@@ -137,7 +138,7 @@ void TicketMgr::LoadGMTickets()
 void TicketMgr::LoadGMSurveys()
 {
     // we don't actually load anything into memory here as there's no reason to
-    QueryResult_AutoPtr result = CharacterDatabase.Query("SELECT MAX(surveyid) FROM gm_surveys");
+    QueryResult* result = CharacterDatabase.Query("SELECT MAX(surveyid) FROM gm_surveys");
     if (result)
     {
         Field* fields = result->Fetch();
@@ -147,6 +148,7 @@ void TicketMgr::LoadGMSurveys()
         m_GMSurveyID = 0;
 
     sLog.outString(">> Loaded GM Survey count from database.");
+	sLog.outString();
 }
 
 void TicketMgr::RemoveGMTicket(uint64 ticketGuid, uint64 GMguid)
@@ -210,7 +212,7 @@ void TicketMgr::UpdateGMTicket(GM_Ticket* ticket)
 
 void TicketMgr::InitTicketID()
 {
-    QueryResult_AutoPtr result = CharacterDatabase.Query("SELECT MAX(guid) FROM gm_tickets");
+    QueryResult* result = CharacterDatabase.Query("SELECT MAX(guid) FROM gm_tickets");
     if (result)
         m_ticketid = result->Fetch()[0].GetUInt64();
 }
