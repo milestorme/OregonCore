@@ -33,7 +33,7 @@
 #define SAY_FREE                    -1564015
 #define SAY_BROKEN_FREE_01          -1564016
 #define SAY_BROKEN_FREE_02          -1564017
-
+#define SPELL_STEALTH               34189
 #define GOSSIP_ITEM                 "We are ready to fight alongside you, Akama"
 
 struct Location
@@ -59,7 +59,7 @@ static Location SpawnLocations[] =
 
 static Location AkamaWP[] =
 {
-    {482.352448f, 401.162720f, 0, 112.783928f},
+    { 514.583984f, 400.601013f, 0,  112.783997f },
     {469.597443f, 402.264404f, 0, 118.537910f}
 };
 
@@ -620,10 +620,21 @@ public:
             {
                 me->SetUInt32Value(UNIT_NPC_FLAGS, 0);      // Database sometimes has very very strange values
                 me->SetFlag(UNIT_NPC_FLAGS, UNIT_NPC_FLAG_GOSSIP);
+                DoCast(me, SPELL_STEALTH);
+                me->SetFaction(1820);
             }
             summons.DespawnAll();
 
             me->setActive(true);
+        }
+        void AttackStart(Unit* who) 
+        {
+            if (who->GetEntry() != 22841)  //prevent akama attack other mobs
+                return;
+        }
+        void JustReachedHome()
+        {
+            Reset();
         }
 
         void JustSummoned(Creature* summon)
@@ -651,19 +662,22 @@ public:
             Creature* Shade = (Unit::GetCreature((*me), ShadeGUID));
             if (Shade)
             {
+                me->RemoveAurasDueToSpell(SPELL_STEALTH);
                 pInstance->SetData(DATA_SHADEOFAKAMAEVENT, IN_PROGRESS);
                 // Prevent players from trying to restart event
                 me->RemoveFlag(UNIT_NPC_FLAGS, UNIT_NPC_FLAG_GOSSIP);
-                CAST_AI(boss_shade_of_akama::boss_shade_of_akamaAI, Shade->AI())->SetAkamaGUID(me->GetGUID());
-                CAST_AI(boss_shade_of_akama::boss_shade_of_akamaAI, Shade->AI())->SetSelectableChannelers();
-                CAST_AI(boss_shade_of_akama::boss_shade_of_akamaAI, Shade->AI())->StartCombat = true;
-                Shade->AddThreat(me, 1000000.0f);
-                Shade->SetUInt32Value(UNIT_NPC_EMOTESTATE, EMOTE_STATE_NONE);
-                Shade->SetUInt64Value(UNIT_FIELD_TARGET, me->GetGUID());
-                me->SetUInt64Value(UNIT_FIELD_TARGET, ShadeGUID);
+                //CAST_AI(boss_shade_of_akama::boss_shade_of_akamaAI, Shade->AI())->SetAkamaGUID(me->GetGUID());
+                //CAST_AI(boss_shade_of_akama::boss_shade_of_akamaAI, Shade->AI())->SetSelectableChannelers();
+                //CAST_AI(boss_shade_of_akama::boss_shade_of_akamaAI, Shade->AI())->StartCombat = true;
+                //Shade->AddThreat(me, 1000000.0f);
+                //Shade->SetUInt32Value(UNIT_NPC_EMOTESTATE, EMOTE_STATE_NONE);
+                //Shade->SetUInt64Value(UNIT_FIELD_TARGET, me->GetGUID());
+                //me->SetUInt64Value(UNIT_FIELD_TARGET, ShadeGUID);
                 if (pl) Shade->AddThreat(pl, 1.0f);
-                DoZoneInCombat(Shade);
-                EventBegun = true;
+                //DoZoneInCombat(Shade);
+                //EventBegun = true;
+                me->SetWalk(true);
+                me->GetMotionMaster()->MovePoint(WayPointId, AkamaWP[0].x, AkamaWP[0].y, AkamaWP[0].z);
             }
         }
 
@@ -671,12 +685,29 @@ public:
         {
             if (type != POINT_MOTION_TYPE)
                 return;
-
             switch (id)
             {
             case 0:
-                ++WayPointId;
-                break;
+                {
+                    Creature* Shade = (Unit::GetCreature((*me), ShadeGUID));
+                    if (Shade)
+                    {
+                        CAST_AI(boss_shade_of_akama::boss_shade_of_akamaAI, Shade->AI())->SetAkamaGUID(me->GetGUID());
+                        CAST_AI(boss_shade_of_akama::boss_shade_of_akamaAI, Shade->AI())->SetSelectableChannelers();
+                        CAST_AI(boss_shade_of_akama::boss_shade_of_akamaAI, Shade->AI())->StartCombat = true;
+                        Shade->AddThreat(me, 1000000.0f);
+                        Shade->SetUInt32Value(UNIT_NPC_EMOTESTATE, EMOTE_STATE_NONE);
+                        Shade->SetUInt64Value(UNIT_FIELD_TARGET, me->GetGUID());
+                        me->SetUInt64Value(UNIT_FIELD_TARGET, ShadeGUID);
+                        //DoZoneInCombat(Shade);
+                        WayPointId = 0;
+                        me->SetFaction(1868);
+
+                        EventBegun = true;
+                    }
+                    ++WayPointId;
+                }
+				break;
 
             case 1:
                 if (Creature* Shade = Unit::GetCreature(*me, ShadeGUID))
@@ -710,6 +741,23 @@ public:
             summons.DespawnAll();
         }
 
+        inline bool UpdateVictim()
+        {
+            if (pInstance && pInstance->GetData(DATA_SHADEOFAKAMAEVENT) == IN_PROGRESS)
+            {
+                if (!me->IsInCombat())
+                    return false;
+
+                if (Creature *pShade = me->GetCreature(*me, ShadeGUID))
+                {
+                    //me->InterruptNonMeleeSpells(false);
+                    AttackStart(pShade);
+                    return me->GetVictim();
+                }
+            }
+            return false;
+        }
+
         void UpdateAI(const uint32 diff)
         {
             if (!EventBegun)
@@ -728,12 +776,7 @@ public:
                 {
                     if (CAST_AI(boss_shade_of_akama::boss_shade_of_akamaAI, Shade->AI())->IsBanished)
                     {
-                        if (CastSoulRetrieveTimer <= diff)
-                        {
-                            DoCast(Shade, SPELL_AKAMA_SOUL_CHANNEL);
-                            CastSoulRetrieveTimer = 60000;
-                        }
-                        else CastSoulRetrieveTimer -= diff;
+                        DoCast(Shade, SPELL_AKAMA_SOUL_CHANNEL);
                     }
                     else
                     {
@@ -761,14 +804,16 @@ public:
                         if (Shade && !Shade->IsAlive())
                         {
                             ShadeHasDied = true;
-                            WayPointId = 0;
-                            me->SetWalk(true);
-                            me->GetMotionMaster()->MovePoint(WayPointId, AkamaWP[0].x, AkamaWP[0].y, AkamaWP[0].z);
+							
                         }
                         if (Shade && Shade->IsAlive())
                         {
                             if (Shade->getThreatManager().getThreatList().size() < 2)
+                            {
                                 Shade->AI()->EnterEvadeMode();
+                                DoCast(me, 5);
+                                pInstance->SetData(DATA_SHADEOFAKAMAEVENT, NOT_STARTED);
+                            }
                         }
                     }
                     CheckTimer = 5000;
@@ -794,6 +839,7 @@ public:
                             float wz = BrokenWP[BrokenSummonIndex].z;
                             Broken->GetMotionMaster()->MovePoint(0, wx, wy, wz);
                             Broken->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
+                            Broken->SetFaction(1820);
                             BrokenList.push_back(Broken->GetGUID());
                         }
                     }
